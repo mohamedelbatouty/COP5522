@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 void merge(int arr[], int left, int mid, int right) {
     int i, j, k;
@@ -55,19 +57,61 @@ void mergeSort(int arr[], int left, int right) {
     }
 }
 
-int main() {
-    int arr[] = { 12, 11, 13, 5, 6, 7 };
-    int n = sizeof(arr) / sizeof(arr[0]);
+int* load_test_data(const char* filename, int* out_length) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error opening test data file");
+        exit(0);
+    }
 
+    int length;
+    if (fscanf(file, "%d", &length) != 1) {
+        printf("Test data file must contain array length on line 0");
+        fclose(file);
+        exit(0);
+    }
+
+    int* arr = (int*)malloc(length * sizeof(int));
+
+    for (int i = 0; i < length; i++) {
+        if (fscanf(file, "%d", &arr[i]) != 1) {
+            printf("Error reading number on line %i", i);
+            free(arr);
+            fclose(file);
+            exit(0);
+        }
+    }
+
+    // Close the file
+    fclose(file);
+
+    // Set the output length
+    *out_length = length;
+
+    return arr;
+}
+
+int main() {
+    int loaded_length;
+    int* loaded_array = load_test_data("testdata.txt", &loaded_length);
+    int n = loaded_length;
     double time1 = microtime();
-    mergeSort(arr, 0, n - 1);
+
+    mergeSort(loaded_array, 0, n - 1);
+
     double time2 = microtime();
 
     double t = time2 - time1;
     // Print results
     printf("\nTime = %g us\n", t);
-    for (int i = 0; i < n; i++)
-        printf("%d ", arr[i]);
-    printf("\n");
+
+    for (int i = 0; i < n-1; i++) {
+        if (loaded_array[i] > loaded_array[i+1]) {
+            printf("Test data arrays not sorted: %i > %i", loaded_array[i], loaded_array[i+1]);
+        }
+
+    }
+
     return 0;
 }
+
