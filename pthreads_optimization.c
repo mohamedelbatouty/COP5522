@@ -12,14 +12,19 @@ typedef struct{
     int right;
 }ArrayArgs;
 
+#define MIN 1500
+
 void* mergeSortHelper(void* args);
 
 void merge(int arr[], int left, int mid, int right) {
     int i, j, k;
     int n1 = mid - left + 1;
     int n2 = right - mid;
+
+    // Allocate memory for left and right subarrays
     int *leftA = (int*)malloc(n1 * sizeof(int));
     int *rightA = (int*)malloc(n2 * sizeof(int));
+
     for (i = 0; i < n1; i++)
         leftA[i] = arr[left + i];
     for (j = 0; j < n2; j++)
@@ -58,17 +63,26 @@ void mergeSort(int arr[], int left, int right) {
     if (left < right) {
         int mid = left + (right - left) / 2;
         
-        pthread_t leftThread, rightThread;
-        //Left half
-        ArrayArgs leftArgs = {arr, left, mid};
-        pthread_create(&leftThread, NULL, mergeSortHelper, (void*)&leftArgs);
+        if(right - left  > MIN){
+            pthread_t leftThread, rightThread;
+            //Left half
+            ArrayArgs leftArgs = {arr, left, mid};
+            pthread_create(&leftThread, NULL, mergeSortHelper, (void*)&leftArgs);
 
-        //Right half
-        ArrayArgs rightArgs = {arr, mid+1, right};
-        pthread_create(&rightThread, NULL, mergeSortHelper, (void*)&rightArgs);
-        pthread_join(leftThread, NULL);
-        pthread_join(rightThread, NULL);
-    merge(arr, left, mid, right);
+            //Right half
+            ArrayArgs rightArgs = {arr, mid+1, right};
+            pthread_create(&rightThread, NULL, mergeSortHelper, (void*)&rightArgs);
+            
+            pthread_join(leftThread, NULL);
+            pthread_join(rightThread, NULL);
+
+            merge(arr, left, mid, right);
+        }else{
+            // If small enough, just run serial mergeSort
+            mergeSort(arr, left, mid);
+            mergeSort(arr, mid + 1, right);
+            merge(arr, left, mid, right);
+        }
     }
 }
 
