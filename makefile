@@ -1,7 +1,7 @@
 CC=gcc
-CFLAG= -Wall -I. -O0 -mavx2 #-fopenmp
+CFLAG= -Wall -I. -O0 -mavx2 -fopenmp
 
-TARGETS=unoptimized generate #optimized
+TARGETS=unoptimized generate openMP
 
 all: $(TARGETS)
 
@@ -20,11 +20,11 @@ generate: generate.o
 generate.o: generate.c
 	$(CC) $(CFLAG) -c $<
 
-#optimized: optimized.o microtime.o
-#	$(CC) $(CFLAG) -o $@ $^
+openMP: openMP.o microtime.o
+	$(CC) $(CFLAG) -o $@ $^
 
-#optimized.o: optimized.c microtime.h
-#	$(CC) $(CFLAG) -c $<
+openMP.o: openMP.c microtime.h
+	$(CC) $(CFLAG) -c $<
 
 clean:
 	rm -f *.o *~ core $(TARGETS)
