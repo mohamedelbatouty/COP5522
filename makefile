@@ -1,7 +1,7 @@
 CC=gcc
 CFLAG= -Wall -I. -O0 -mavx2 -fopenmp
 
-TARGETS=unoptimized generate openMP
+TARGETS=unoptimized generate openMP pthreads
 
 all: $(TARGETS)
 
@@ -20,10 +20,16 @@ generate: generate.o
 generate.o: generate.c
 	$(CC) $(CFLAG) -c $<
 
-openMP: openMP.o microtime.o
+openMP: openmp.o microtime.o
 	$(CC) $(CFLAG) -o $@ $^
 
-openMP.o: openMP.c microtime.h
+openMP.o: openmp.c microtime.h
+	$(CC) $(CFLAG) -c $<
+	
+pthreads: pthreads_optimization.o microtime.o
+	$(CC) $(CFLAG) -o $@ $^
+
+pthreads_optimization.o: pthreads_optimization.c microtime.h
 	$(CC) $(CFLAG) -c $<
 
 clean:
