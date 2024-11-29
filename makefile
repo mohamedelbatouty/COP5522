@@ -1,7 +1,7 @@
 CC = gcc
 MPI = mpicc
 CFLAG = -Wall -I. -O3 -march=native -fopenmp
-TARGETS = unoptimized generate openmp optimized_merge_sort
+TARGETS = unoptimized generate optimized_merge_sort mpi
 
 all: $(TARGETS)
 
@@ -18,12 +18,6 @@ generate: generate.o
 	$(CC) $(CFLAG) -o $@ $^
 
 generate.o: generate.c
-	$(CC) $(CFLAG) -c $<
-
-openmp: openmp.o microtime.o
-	$(CC) $(CFLAG) -o $@ $^
-
-openmp.o: openmp.c microtime.h
 	$(CC) $(CFLAG) -c $<
 
 optimized_merge_sort: optimized_merge_sort.o microtime.o

@@ -94,7 +94,7 @@ int* load_test_data(const char* filename, int* out_length) {
 
 int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
-    double time1;
+    double time1 =0;
 
     int procs, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
@@ -105,7 +105,6 @@ int main(int argc, char* argv[]) {
 
     if (rank == 0) {
         loaded_array = load_test_data("testdata.txt", &loaded_length);
-        time1 = microtime();
     }
 
     MPI_Bcast(&loaded_length, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -123,7 +122,9 @@ int main(int argc, char* argv[]) {
     }
 
     MPI_Scatterv(loaded_array, sCounts, displacement, MPI_INT, lArray, sCounts[rank], MPI_INT, 0, MPI_COMM_WORLD);
-
+    if (rank == 0) {
+        time1 = microtime();
+    }
     mergeSort(lArray, 0, sCounts[rank] - 1);
 
     int* gArray = NULL;

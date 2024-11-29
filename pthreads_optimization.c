@@ -14,6 +14,11 @@ typedef struct{
 
 #define MIN 1500
 
+// Global variables for max threads
+int max_threads = 0;
+int current_threads = 0;
+pthread_mutex_t thread_count_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void* mergeSortHelper(void* args);
 
 void merge(int arr[], int left, int mid, int right) {
@@ -65,6 +70,15 @@ void mergeSort(int arr[], int left, int right) {
         
         if(right - left  > MIN){
             pthread_t leftThread, rightThread;
+
+            // Update the thread count safely
+            pthread_mutex_lock(&thread_count_mutex);
+            current_threads += 2;
+            if (current_threads > max_threads) {
+                max_threads = current_threads;
+            }
+            pthread_mutex_unlock(&thread_count_mutex);
+
             //Left half
             ArrayArgs leftArgs = {arr, left, mid};
             pthread_create(&leftThread, NULL, mergeSortHelper, (void*)&leftArgs);
@@ -75,6 +89,11 @@ void mergeSort(int arr[], int left, int right) {
             
             pthread_join(leftThread, NULL);
             pthread_join(rightThread, NULL);
+
+            // Decrease the thread count after threads join
+            pthread_mutex_lock(&thread_count_mutex);
+            current_threads -= 2;
+            pthread_mutex_unlock(&thread_count_mutex);
 
             merge(arr, left, mid, right);
         }else{
@@ -150,6 +169,7 @@ int main() {
     if(notSorted){
         printf("Sorting algorithm did not work.\n");
     }
+    printf("Max threads used = %d\n", max_threads);
 
     return 0;
 }
