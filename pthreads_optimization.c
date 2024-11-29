@@ -14,10 +14,6 @@ typedef struct{
 
 #define MIN 1500
 
-int max_threads = 0;
-int current_threads = 0;
-pthread_mutex_t thread_count_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 void* mergeSortHelper(void* args);
 
 void merge(int arr[], int left, int mid, int right) {
@@ -25,6 +21,7 @@ void merge(int arr[], int left, int mid, int right) {
     int n1 = mid - left + 1;
     int n2 = right - mid;
 
+    // Allocate memory for left and right subarrays
     int *leftA = (int*)malloc(n1 * sizeof(int));
     int *rightA = (int*)malloc(n2 * sizeof(int));
 
@@ -68,29 +65,20 @@ void mergeSort(int arr[], int left, int right) {
         
         if(right - left  > MIN){
             pthread_t leftThread, rightThread;
-
-            pthread_mutex_lock(&thread_count_mutex);
-            current_threads += 2;
-            if (current_threads > max_threads) {
-                max_threads = current_threads;
-            }
-            pthread_mutex_unlock(&thread_count_mutex);
-
+            //Left half
             ArrayArgs leftArgs = {arr, left, mid};
             pthread_create(&leftThread, NULL, mergeSortHelper, (void*)&leftArgs);
 
+            //Right half
             ArrayArgs rightArgs = {arr, mid+1, right};
             pthread_create(&rightThread, NULL, mergeSortHelper, (void*)&rightArgs);
             
             pthread_join(leftThread, NULL);
             pthread_join(rightThread, NULL);
 
-            pthread_mutex_lock(&thread_count_mutex);
-            current_threads -= 2;
-            pthread_mutex_unlock(&thread_count_mutex);
-
             merge(arr, left, mid, right);
         }else{
+            // If small enough, just run serial mergeSort
             mergeSort(arr, left, mid);
             mergeSort(arr, mid + 1, right);
             merge(arr, left, mid, right);
@@ -122,7 +110,11 @@ int* load_test_data(const char* filename, int* out_length) {
             exit(0);
         }
     }
+
+    // Close the file
     fclose(file);
+
+    // Set the output length
     *out_length = length;
 
     return arr;
@@ -138,21 +130,28 @@ int main() {
     int loaded_length;
     int* loaded_array = load_test_data("testdata.txt", &loaded_length);
     int n = loaded_length;
-    double time1 = microtime();    
+    int notSorted = 0;
+
+    double time1 = microtime();
+    
     mergeSort(loaded_array, 0, n - 1);
+
     double time2 = microtime();
 
     double t = time2 - time1;
+    // Print results
     printf("\nTime = %g us\n", t);
 
     for (int i = 0; i < n-1; i++) {
         if (loaded_array[i] > loaded_array[i+1]) {
-            printf("Test data arrays not sorted: %i > %i", loaded_array[i], loaded_array[i+1]);
+            notSorted = 1;
         }
     }
+    if(notSorted){
+        printf("Sorting algorithm did not work.\n");
+    }
 
-    printf("Max threads used = %d\n", max_threads);
-
+    free(loaded_array);
     return 0;
 }
 
