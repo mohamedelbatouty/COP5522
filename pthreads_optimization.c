@@ -13,6 +13,10 @@ typedef struct{
 }ArrayArgs;
 
 #define MIN 1500
+#define MAX_THREADS 32
+int activeThreads = 0;
+int max_threads_reached = 0;
+pthread_mutex_t threadMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void* mergeSortHelper(void* args);
 
@@ -63,20 +67,29 @@ void mergeSort(int arr[], int left, int right) {
     if (left < right) {
         int mid = left + (right - left) / 2;
         
-        if(right - left  > MIN){
+        if(right - left  > MIN && activeThreads < MAX_THREADS){
             pthread_t leftThread, rightThread;
-            //Left half
+
+            pthread_mutex_lock(&threadMutex);
+            activeThreads += 2;
+            if(activeThreads > max_threads_reached){
+                max_threads_reached = activeThreads;
+            }
+            pthread_mutex_unlock(&threadMutex);
+            
             ArrayArgs leftArgs = {arr, left, mid};
+            ArrayArgs rightArgs = {arr, mid+1, right};                        
+            pthread_create(&rightThread, NULL, mergeSortHelper, (void*)&rightArgs);
             pthread_create(&leftThread, NULL, mergeSortHelper, (void*)&leftArgs);
 
-            //Right half
-            ArrayArgs rightArgs = {arr, mid+1, right};
-            pthread_create(&rightThread, NULL, mergeSortHelper, (void*)&rightArgs);
-            
             pthread_join(leftThread, NULL);
             pthread_join(rightThread, NULL);
 
             merge(arr, left, mid, right);
+
+            pthread_mutex_lock(&threadMutex);
+            activeThreads -= 2;
+            pthread_mutex_unlock(&threadMutex);
         }else{
             // If small enough, just run serial mergeSort
             mergeSort(arr, left, mid);
@@ -141,6 +154,7 @@ int main() {
     double t = time2 - time1;
     // Print results
     printf("\nTime = %g us\n", t);
+    printf("Max threads reached: %d"\n, max_threads_reached);
 
     for (int i = 0; i < n-1; i++) {
         if (loaded_array[i] > loaded_array[i+1]) {
