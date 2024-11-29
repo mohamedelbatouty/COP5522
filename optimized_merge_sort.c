@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INSERTION_SORT_THRESHOLD 32
+#define IST 32
 
-// Insertion sort for small arrays
 void insertionSort(int arr[], int left, int right) {
     for (int i = left + 1; i <= right; i++) {
         int key = arr[i];
@@ -18,7 +17,6 @@ void insertionSort(int arr[], int left, int right) {
     }
 }
 
-// Merge function with a preallocated temporary buffer
 void merge(int arr[], int temp[], int left, int mid, int right) {
     int i = left, j = mid + 1, k = left;
 
@@ -43,21 +41,18 @@ void merge(int arr[], int temp[], int left, int mid, int right) {
     }
 }
 
-// Iterative merge sort to avoid recursion
 void mergeSort(int arr[], int n) {
     int* temp = (int*)malloc(n * sizeof(int));
     if (temp == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
-    }
-
-    
-    for (int i = 0; i < n; i += INSERTION_SORT_THRESHOLD) {
-        int right = (i + INSERTION_SORT_THRESHOLD - 1 < n) ? i + INSERTION_SORT_THRESHOLD - 1 : n - 1;
+    } 
+    for (int i = 0; i < n; i += IST) {
+        int right = (i + IST - 1 < n) ? i + IST - 1 : n - 1;
         insertionSort(arr, i, right);
     }
 
-    for (int size = INSERTION_SORT_THRESHOLD; size < n; size *= 2) {
+    for (int size = IST; size < n; size *= 2) {
         for (int left = 0; left < n - size; left += 2 * size) {
             int mid = left + size - 1;
             int right = (left + 2 * size - 1 < n) ? left + 2 * size - 1 : n - 1;
@@ -68,14 +63,12 @@ void mergeSort(int arr[], int n) {
     free(temp);
 }
 
-// Function to load test data from a file
 int* load_test_data(const char* filename, int* out_length) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening test data file.\n");
         exit(1);
     }
-
     int length;
     if (fscanf(file, "%d", &length) != 1) {
         printf("Test data file must contain array length on line 0.\n");
@@ -89,7 +82,6 @@ int* load_test_data(const char* filename, int* out_length) {
         fclose(file);
         exit(1);
     }
-
     for (int i = 0; i < length; i++) {
         if (fscanf(file, "%d", &arr[i]) != 1) {
             printf("Error reading number on line %d.\n", i);
@@ -98,7 +90,6 @@ int* load_test_data(const char* filename, int* out_length) {
             exit(1);
         }
     }
-
     fclose(file);
     *out_length = length;
     return arr;
@@ -107,23 +98,19 @@ int* load_test_data(const char* filename, int* out_length) {
 int main() {
     int loaded_length;
     int* loaded_array = load_test_data("testdata.txt", &loaded_length);
-
     double time1 = microtime();
     mergeSort(loaded_array, loaded_length);
     double time2 = microtime();
-
     double t = time2 - time1;
     printf("\nTime = %g us\n", t);
-
     for (int i = 0; i < loaded_length - 1; i++) {
         if (loaded_array[i] > loaded_array[i + 1]) {
-            printf("Test data array is not sorted: %d > %d\n", loaded_array[i], loaded_array[i + 1]);
+            printf("Test data arrays not sorted: %i > %i", loaded_array[i], loaded_array[i+1]);
             free(loaded_array);
             return 1;
         }
     }
 
-    printf("Array sorted successfully.\n");
     free(loaded_array);
     return 0;
 }

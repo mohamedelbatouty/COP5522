@@ -83,10 +83,7 @@ int* load_test_data(const char* filename, int* out_length) {
         }
     }
 
-    // Close the file
     fclose(file);
-
-    // Set the output length
     *out_length = length;
 
     return arr;
