@@ -154,7 +154,7 @@ int main() {
     double t = time2 - time1;
     // Print results
     printf("\nTime = %g us\n", t);
-    printf("Max threads reached: %d"\n, max_threads_reached);
+    printf("Max threads reached: %d\n", max_threads_reached);
 
     for (int i = 0; i < n-1; i++) {
         if (loaded_array[i] > loaded_array[i+1]) {
