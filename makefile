@@ -1,7 +1,6 @@
-CC=gcc
-CFLAG= -Wall -I. -O0 -mavx2 -fopenmp
-
-TARGETS=unoptimized generate openMP pthreads
+CC = gcc
+CFLAG = -Wall -I. -O3 -march=native -fopenmp
+TARGETS = unoptimized generate openmp optimized_merge_sort
 
 all: $(TARGETS)
 
@@ -20,16 +19,16 @@ generate: generate.o
 generate.o: generate.c
 	$(CC) $(CFLAG) -c $<
 
-openMP: openmp.o microtime.o
+openmp: openmp.o microtime.o
 	$(CC) $(CFLAG) -o $@ $^
 
-openMP.o: openmp.c microtime.h
+openmp.o: openmp.c microtime.h
 	$(CC) $(CFLAG) -c $<
-	
-pthreads: pthreads_optimization.o microtime.o
+
+optimized_merge_sort: optimized_merge_sort.o microtime.o
 	$(CC) $(CFLAG) -o $@ $^
 
-pthreads_optimization.o: pthreads_optimization.c microtime.h
+optimized_merge_sort.o: optimized_merge_sort.c microtime.h
 	$(CC) $(CFLAG) -c $<
 
 clean:
